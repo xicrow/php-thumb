@@ -16,11 +16,15 @@ use \Xicrow\PhpThumb\Thumb;
 // Set default options
 Thumb::setOptions([
 	// Full path to folder used for images given with relative path
-	'path_images' => realpath('./webroot'),
+	'path_images'     => realpath('./webroot'),
 	// Full path to folder used for thumbnails
-	'path_thumbs' => realpath('./webroot/thumbnails'),
+	'path_thumbs'     => realpath('./webroot/thumbnails'),
+	// Full path to folder used for watermarks given with relative path
+	'path_watermarks' => realpath('./webroot'),
+	// Full path to folder used for fonts given with relative path
+	'path_fonts'      => realpath('../src/Fonts'),
 	// Quality of the generated image
-	'quality'     => 100,
+	'quality'         => 100,
 ]);
 
 // Array with default options to replace/extend
@@ -28,7 +32,7 @@ $optionsDefault = [
 	// Resize options
 	'resize'    => [
 		// Width of the thumbnail (empty value to auto calculate in relation to height)
-		'width'      => 400,
+		'width'      => 500,
 		// Height of the thumbnail (empty value to auto calculate in relation to width)
 		'height'     => 400,
 		// Method to use when resizing
@@ -49,19 +53,23 @@ $optionsDefault = [
 	// Watermark options
 	'watermark' => [
 		// File to add as watermark
-		'file'      => false,
+		'image'     => false,
 		// Width of the watermark image
 		'width'     => 100,
 		// Height of the watermark image
 		'height'    => 100,
 		// Text to add as watermark
-		'text'      => false,
+		'text'      => 'Xicrow\\PhpThumb',
 		// Font to use for text
-		'font'      => 'Arial',
+		'font'      => 'arial.ttf',
 		// Font size to use for text
-		'font_size' => 10,
-		// Alignment of watermark within canvas (percentage from top left)
-		'align'     => [100, 100],
+		'font_size' => 15,
+		// Color to use for text (hex color ie. #FFFFFF)
+		'color'     => '#FFFFFF',
+		// Horizontal alignment of watermark within canvas (left, center, right)
+		'align_x'   => 'right',
+		// Vertical alignment of watermark within canvas (top, middle, bottom)
+		'align_y'   => 'bottom',
 	],
 ];
 ?>
@@ -111,18 +119,32 @@ $optionsDefault = [
 				// Portrait
 				//				'images/email-timing-full.jpg',
 				//				'images/gky7VZp.jpg',
+				// Transparency
+				//				'images/2000px-Chevronny_demo.svg.png',
+				//				'images/Doom_logo.png',
 			];
 			foreach ($images as $image) {
 				$options = array_replace_recursive($optionsDefault, [
-					'resize' => [
-						'width'     => 500,
-						'height'    => 500,
+					'resize'    => [
+						'width'     => 800,
+						'height'    => 600,
 						'method'    => 'crop',
 						'stretch'   => false,
 						'trim'      => false,
 						'align_x'   => 'center',
 						'align_y'   => 'bottom',
-						'grayscale' => true,
+						'grayscale' => false,
+					],
+					'watermark' => [
+						'image'     => false,
+						'width'     => 155,
+						'height'    => 100,
+						'text'      => false,
+						'font'      => 'arial.ttf',
+						'font_size' => 20,
+						'color'     => '#000000',
+						'align_x'   => 'right',
+						'align_y'   => 'bottom',
 					],
 				]);
 
@@ -173,47 +195,47 @@ $optionsDefault = [
 					]
 				],
 			];
-			$option2List = [
-				[
-					'resize' => [
-						'stretch'   => false,
-						'grayscale' => true,
-					]
-				],
-				[
-					'resize' => [
-						'stretch'   => true,
-						'grayscale' => false,
-					]
-				],
-			];
-			$option3List = [
-				[
-					'resize' => [
-						'align_x' => 'center',
-						'align_y' => 'top',
-					]
-				],
-				[
-					'resize' => [
-						'align_x' => 'center',
-						'align_y' => 'bottom',
-					]
-				],
-				[
-					'resize' => [
-						'align_x' => 'left',
-						'align_y' => 'middle',
-					]
-				],
-				[
-					'resize' => [
-						'align_x' => 'right',
-						'align_y' => 'middle',
-					]
-				],
-			];
-			$optionList  = [];
+			//			$option2List = [
+			//				[
+			//					'resize' => [
+			//						'stretch'   => false,
+			//						'grayscale' => true,
+			//					]
+			//				],
+			//				[
+			//					'resize' => [
+			//						'stretch'   => true,
+			//						'grayscale' => false,
+			//					]
+			//				],
+			//			];
+			//			$option3List = [
+			//				[
+			//					'resize' => [
+			//						'align_x' => 'center',
+			//						'align_y' => 'top',
+			//					]
+			//				],
+			//				[
+			//					'resize' => [
+			//						'align_x' => 'center',
+			//						'align_y' => 'bottom',
+			//					]
+			//				],
+			//				[
+			//					'resize' => [
+			//						'align_x' => 'left',
+			//						'align_y' => 'middle',
+			//					]
+			//				],
+			//				[
+			//					'resize' => [
+			//						'align_x' => 'right',
+			//						'align_y' => 'middle',
+			//					]
+			//				],
+			//			];
+			$optionList = [];
 			if (isset($option1List)) {
 				foreach ($option1List as $option1) {
 					if (isset($option2List)) {
