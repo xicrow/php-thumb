@@ -42,6 +42,15 @@ class GdLibrary implements EngineInterface {
 	}
 
 	/**
+	 * Get the current resource
+	 *
+	 * @return null|resource
+	 */
+	public function getResourceCurrent() {
+		return $this->resourceCurrent;
+	}
+
+	/**
 	 * @inheritdoc
 	 */
 	public function load($file, array $options = []) {
@@ -236,7 +245,7 @@ class GdLibrary implements EngineInterface {
 
 		// Get image background color setting
 		$background = 'transparent';
-		if ($options['background']) {
+		if (!empty($options['background'])) {
 			$background = $options['background'];
 		}
 		if ($background != 'transparent' && (strlen($background) != 7 || substr($background, 0, 1) != '#')) {
@@ -268,10 +277,9 @@ class GdLibrary implements EngineInterface {
 				imagesavealpha($this->resourceCurrent, true);
 			}
 		} else {
-			$backgroundRgb = Utility::hex2rgb($background);
-
 			// Create a new transparent color for image
-			$color = imagecolorallocate($this->resourceCurrent, $backgroundRgb[0], $backgroundRgb[1], $backgroundRgb[2]);
+			$backgroundRgb = Utility::hex2rgb($background);
+			$color         = imagecolorallocate($this->resourceCurrent, $backgroundRgb[0], $backgroundRgb[1], $backgroundRgb[2]);
 
 			// Completely fill the background of the new image with allocated color.
 			imagefill($this->resourceCurrent, 0, 0, $color);
@@ -281,18 +289,139 @@ class GdLibrary implements EngineInterface {
 		imagecopyresampled($this->resourceCurrent, $this->resourceOriginal, $dstX, $dstY, $srcX, $srcY, $dstW, $dstH, $srcW, $srcH);
 
 		// Convert image to grayscale
-		if ($options['grayscale']) {
+		if (!empty($options['grayscale'])) {
 			imagefilter($this->resourceCurrent, IMG_FILTER_GRAYSCALE);
 		}
 
-		return is_resource($this->resourceOriginal);
+		return is_resource($this->resourceCurrent);
 	}
 
 	/**
 	 * @inheritdoc
 	 */
 	public function watermark(array $options = []) {
-		// @todo
+		// Get original width and height
+		$originalWidth  = imagesx($this->resourceCurrent);
+		$originalHeight = imagesy($this->resourceCurrent);
+
+		// If image is given
+		if (!empty($options['image'])) {
+			// Get watermark image resource
+			$watermark = new GdLibrary();
+			$watermark->load($options['image']);
+			$watermark->resize([
+				'width'      => $options['width'],
+				'height'     => $options['height'],
+				'method'     => 'fit',
+				'stretch'    => true,
+				'trim'       => false,
+				'align_x'    => 'center',
+				'align_y'    => 'middle',
+				'background' => 'transparent',
+			]);
+			$watermarkResource = $watermark->getResourceCurrent();
+			unset($watermark);
+
+			// Options for imagecopyresampled()
+			$dstW = $options['width'];
+			$dstH = $options['height'];
+			$dstX = 0;
+			$dstY = 0;
+			$srcW = $options['width'];
+			$srcH = $options['height'];
+			$srcX = 0;
+			$srcY = 0;
+
+			// Calculate destination X and Y coordinates
+			switch ($options['align_x']) {
+				case 'left':
+				break;
+				case 'center':
+					$dstX = (($originalWidth - $dstW) / 2);
+				break;
+				case 'right':
+					$dstX = ($originalWidth - $dstW);
+				break;
+				default:
+					die('\Xicrow\PhpThumb\Engine\GdLibrary: Unknown horizontal alignment: ' . $options['align_x']);
+				break;
+			}
+			switch ($options['align_y']) {
+				case 'top':
+				break;
+				case 'middle':
+					$dstY = (($originalHeight - $dstH) / 2);
+				break;
+				case 'bottom':
+					$dstY = ($originalHeight - $dstH);
+				break;
+				default:
+					die('\Xicrow\PhpThumb\Engine\GdLibrary: Unknown vertical alignment: ' . $options['align_y']);
+				break;
+			}
+
+			// Copy and resize part of the image with resampling
+			imagecopyresampled($this->resourceCurrent, $watermarkResource, $dstX, $dstY, $srcX, $srcY, $dstW, $dstH, $srcW, $srcH);
+		}
+
+		// If text is given
+		if (!empty($options['text'])) {
+			// Set angle
+			$angle = 0;
+
+			// Set padding
+			$padding = 5;
+
+			// Get bounding box for the text
+			$textBoundingBox = imagettfbbox($options['font_size'], $angle, $options['font'], $options['text']);
+
+			// Get text width and height
+			$textWidth  = abs($textBoundingBox[4] - $textBoundingBox[0]) + $padding;
+			$textHeight = abs($textBoundingBox[5] - $textBoundingBox[1]) + $padding;
+			unset($textBoundingBox);
+
+			// Calculate text X and Y coordinates
+			$x = 0;
+			$y = 0;
+			switch ($options['align_x']) {
+				case 'left':
+				break;
+				case 'center':
+					$x = (($originalWidth - $textWidth) / 2);
+				break;
+				case 'right':
+					$x = ($originalWidth - $textWidth);
+				break;
+				default:
+					die('\Xicrow\PhpThumb\Engine\GdLibrary: Unknown horizontal alignment: ' . $options['align_x']);
+				break;
+			}
+			switch ($options['align_y']) {
+				case 'top':
+				break;
+				case 'middle':
+					$y = (($originalHeight - $textHeight) / 2);
+				break;
+				case 'bottom':
+					$y = ($originalHeight - $textHeight);
+				break;
+				default:
+					die('\Xicrow\PhpThumb\Engine\GdLibrary: Unknown vertical alignment: ' . $options['align_y']);
+				break;
+			}
+
+			// Add font size to Y coordinate
+			$y += $options['font_size'];
+
+			// Get color
+			$colorRgb = Utility::hex2rgb($options['color']);
+			$color    = imagecolorallocate($this->resourceCurrent, $colorRgb[0], $colorRgb[1], $colorRgb[2]);
+
+			// Write text to image
+			imagettftext($this->resourceCurrent, $options['font_size'], $angle, $x, $y, $color, $options['font'], $options['text']);
+		}
+
+		return is_resource($this->resourceCurrent);
 	}
 
 	/**
