@@ -21,11 +21,15 @@ class Thumb {
 	 */
 	private static $options = [
 		// Full path to folder used for images given with relative path
-		'path_images' => './image',
+		'path_images'     => './images',
 		// Full path to folder used for thumbnails
-		'path_thumbs' => './thumb',
+		'path_thumbs'     => './thumbs',
+		// Full path to folder used for watermarks given with relative path
+		'path_watermarks' => './watermarks',
+		// Full path to folder used for fonts given with relative path
+		'path_fonts'      => './Fonts',
 		// Resize options
-		'resize'      => [
+		'resize'          => [
 			// Width of the thumbnail (empty value to auto calculate in relation to height)
 			'width'      => 500,
 			// Height of the thumbnail (empty value to auto calculate in relation to width)
@@ -46,9 +50,9 @@ class Thumb {
 			'grayscale'  => false,
 		],
 		// Watermark options
-		'watermark'   => [
-			// File to add as watermark
-			'file'      => false,
+		'watermark'       => [
+			// Image to add as watermark
+			'image'     => false,
 			// Width of the watermark image
 			'width'     => 100,
 			// Height of the watermark image
@@ -59,11 +63,15 @@ class Thumb {
 			'font'      => 'Arial',
 			// Font size to use for text
 			'font_size' => 10,
-			// Alignment of watermark within canvas (percentage from top left)
-			'align'     => [100, 100],
+			// Color to use for text (hex color ie. #FFFFFF)
+			'color'     => '#FFFFFF',
+			// Horizontal alignment of watermark within canvas (left, center, right)
+			'align_x'   => 'center',
+			// Vertical alignment of watermark within canvas (top, middle, bottom)
+			'align_y'   => 'middle',
 		],
 		// Quality of the generated image
-		'quality'     => 80,
+		'quality'         => 80,
 	];
 
 	/**
@@ -148,7 +156,16 @@ class Thumb {
 			if ($options['resize'] && (!empty($options['resize']['width']) || !empty($options['resize']['height']))) {
 				$engine->resize($options['resize']);
 			}
-			if ($options['watermark'] && (!empty($options['watermark']['file']) || !empty($options['watermark']['text']))) {
+			if ($options['watermark'] && (!empty($options['watermark']['image']) || !empty($options['watermark']['text']))) {
+				// Check image path
+				if (!empty($options['watermark']['image']) && !file_exists($options['watermark']['image'])) {
+					$options['watermark']['image'] = rtrim($options['path_watermarks'], DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR . $options['watermark']['image'];
+				}
+				// Check font path
+				if (!empty($options['watermark']['text']) && !file_exists($options['watermark']['font'])) {
+					$options['watermark']['font'] = rtrim($options['path_fonts'], DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR . $options['watermark']['font'];
+				}
+
 				$engine->watermark($options['watermark']);
 			}
 			$engine->save($thumbPath, $options);
