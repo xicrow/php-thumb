@@ -1,14 +1,14 @@
 # Thumb
 Thumbnail generation for PHP
 
-__Note: This library is not yet considered stable, and is prone to changes__
+__Note: This branch is not considered stable, and is prone to changes__
 
 ## Installation
 The recommended way to install is through [Composer](https://getcomposer.org/).
 ```JSON
 {
     "require": {
-        "xicrow/php-thumb": "<1.0"
+        "xicrow/php-thumb": "dev-develop"
     }
 }
 ```
