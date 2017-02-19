@@ -8,6 +8,53 @@ namespace Xicrow\PhpThumb;
  */
 class Utility {
 	/**
+	 * Get URL for placeholder image
+	 *
+	 * @param string $url
+	 * @param array  $options
+	 *
+	 * @return string
+	 */
+	public static function getPlaceholderImage($url = '', array $options = []) {
+		// Merge options with default options
+		$options = array_merge([
+			'width'  => 500,
+			'height' => 500,
+			'text'   => 'Image not found',
+		], $options);
+
+		// Set protocol for placeholder image URL
+		$protocol = 'http';
+		if (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] == 'on') {
+			$protocol = 'https';
+		} elseif (!empty($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] == 'https' || !empty($_SERVER['HTTP_X_FORWARDED_SSL']) && $_SERVER['HTTP_X_FORWARDED_SSL'] == 'on') {
+			$protocol = 'https';
+		}
+
+		// Build querystring
+		$urlQuery = [
+			'w'        => $options['width'],
+			'h'        => $options['height'],
+			'txt'      => urlencode($options['text']),
+			'bg'       => 'ECECEC',
+			'txtclr'   => '444444',
+			'txttrack' => 0,
+			'txtsize'  => 60,
+			'original' => $url
+		];
+		$urlQuery = array_map(function ($key, $value) {
+			return $key . '=' . $value;
+		}, array_keys($urlQuery), array_values($urlQuery));
+
+		// Build URL
+		$url = $protocol . '://placeholdit.imgix.net/~text?' . implode('&', $urlQuery);
+		unset($urlQuery);
+
+		// Return URL for placeholder image
+		return $url;
+	}
+
+	/**
 	 * Get MIME type for a given file path
 	 *
 	 * @param string $filePath
