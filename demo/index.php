@@ -12,6 +12,7 @@ ini_set('memory_limit', '256M');
 require_once('../src/autoload.php');
 
 use \Xicrow\PhpThumb\Thumb;
+use \Xicrow\PhpThumb\Helper;
 
 // Set default options
 Thumb::setOptions([
@@ -24,8 +25,29 @@ Thumb::setOptions([
 	// Full path to folder used for fonts given with relative path
 	'path_fonts'      => realpath('../src/Fonts'),
 	// Quality of the generated image
-	'quality'         => 100,
+	'quality'         => 90,
 ]);
+
+/**
+ * Get thumbnail URL for a given image and options
+ *
+ * @param string $image
+ * @param array  $options
+ *
+ * @return string
+ */
+function getThumbUrl($image, $options = []) {
+	// Resize in seperate process
+	$thumbUrl = './webroot/thumbnails' . Helper::getThumbUrl($image, $options);
+
+	// Resize now
+	//					$thumbPath = Thumb::resize($image, $options);
+	//					$thumbUrl  = str_replace('E:\\GitHub\\php-thumb\\demo\\', './', $thumbPath);
+	//					$thumbUrl  = str_replace('\\', '/', $thumbUrl);
+
+	// Return thumbnail URL
+	return $thumbUrl;
+}
 
 // Array with default options to replace/extend
 $optionsDefault = [
@@ -59,7 +81,7 @@ $optionsDefault = [
 		// Height of the watermark image
 		'height'    => 100,
 		// Text to add as watermark
-		'text'      => 'Xicrow\\PhpThumb',
+		'text'      => false,
 		// Font to use for text
 		'font'      => 'arial.ttf',
 		// Font size to use for text
@@ -114,8 +136,10 @@ $optionsDefault = [
 			// Simple test
 			$images = [
 				// Landscape
-				'images/F-16_Demo_Team_2722.jpg',
-				//				'images/image.img.jpg',
+				//				'images/F-16_Demo_Team_2722.jpg',
+				//				'images/controller-1.jpg',
+				//				'images/controller-2.jpg',
+				//				'images/controller-3.jpg',
 				// Portrait
 				//				'images/email-timing-full.jpg',
 				//				'images/gky7VZp.jpg',
@@ -148,26 +172,41 @@ $optionsDefault = [
 					],
 				]);
 
-				echo '<div style="margin: 5px; padding: 5px; background: #EEE; border: 1px solid #CCC; float: left;">';
-				$thumbPath = Thumb::resize($image, $options);
-				$thumbUrl  = str_replace('E:\\GitHub\\php-thumb\\demo\\', './', $thumbPath);
-				$thumbUrl  = str_replace('\\', '/', $thumbUrl);
-
-				echo '<table width="100%" border="0">';
-				echo '<tr><th width="50%">Setting</th><th>Value</th></tr>';
-				echo '<tr><td>Size</td><td>' . $options['resize']['width'] . 'x' . $options['resize']['height'] . '</td></tr>';
-				echo '<tr><td>Align</td><td>' . $options['resize']['align_x'] . ' ' . $options['resize']['align_y'] . '</td></tr>';
-				echo '<tr><td>Method</td><td>' . $options['resize']['method'] . '</td></tr>';
-				echo '<tr><td>Stretch</td><td>' . (int) $options['resize']['stretch'] . '</td></tr>';
-				echo '<tr><td>Trim</td><td>' . (int) $options['resize']['trim'] . '</td></tr>';
-				echo '<tr><td>Greyscale</td><td>' . (int) $options['resize']['grayscale'] . '</td></tr>';
-				echo '<tr><td>Background</td><td>' . $options['resize']['background'] . '</td></tr>';
-				echo '</table>';
-
-				echo '<div style="width: ' . $options['resize']['width'] . 'px; height: ' . $options['resize']['height'] . 'px;">';
-				echo '<img src="' . $thumbUrl . '" style="border: 1px solid #CCC;">';
-				echo '</div>';
-				echo '</div>';
+				if (true) {
+					echo '<div style="margin: 5px; padding: 5px; background: #EEE; border: 1px solid #CCC; float: left;">';
+					$thumbUrl = getThumbUrl($image, $options);
+					echo '<table width="100%" border="0">';
+					echo '<tr><th width="50%">Setting</th><th>Value</th></tr>';
+					echo '<tr><td>Size</td><td>' . $options['resize']['width'] . 'x' . $options['resize']['height'] . '</td></tr>';
+					echo '<tr><td>Align</td><td>' . $options['resize']['align_x'] . ' ' . $options['resize']['align_y'] . '</td></tr>';
+					echo '<tr><td>Method</td><td>' . $options['resize']['method'] . '</td></tr>';
+					echo '<tr><td>Stretch</td><td>' . (int) $options['resize']['stretch'] . '</td></tr>';
+					echo '<tr><td>Trim</td><td>' . (int) $options['resize']['trim'] . '</td></tr>';
+					echo '<tr><td>Greyscale</td><td>' . (int) $options['resize']['grayscale'] . '</td></tr>';
+					echo '<tr><td>Background</td><td>' . $options['resize']['background'] . '</td></tr>';
+					echo '</table>';
+					echo '<div style="width: ' . $options['resize']['width'] . 'px; height: ' . $options['resize']['height'] . 'px;">';
+					echo '<img src="' . $thumbUrl . '" style="border: 1px solid #CCC;">';
+					echo '</div>';
+					echo '</div>';
+				} else {
+					echo '<div style="margin: 5px; padding: 5px; background: #EEE; border: 1px solid #CCC; float: left;">';
+					$thumbUrl = getThumbUrl($image, $options);
+					echo '<table width="100%" border="0">';
+					echo '<tr><th width="50%">Setting</th><th>Value</th></tr>';
+					echo '<tr><td>Size</td><td>' . $options['resize']['width'] . 'x' . $options['resize']['height'] . '</td></tr>';
+					echo '<tr><td>Align</td><td>' . $options['resize']['align_x'] . ' ' . $options['resize']['align_y'] . '</td></tr>';
+					echo '<tr><td>Method</td><td>' . $options['resize']['method'] . '</td></tr>';
+					echo '<tr><td>Stretch</td><td>' . (int) $options['resize']['stretch'] . '</td></tr>';
+					echo '<tr><td>Trim</td><td>' . (int) $options['resize']['trim'] . '</td></tr>';
+					echo '<tr><td>Greyscale</td><td>' . (int) $options['resize']['grayscale'] . '</td></tr>';
+					echo '<tr><td>Background</td><td>' . $options['resize']['background'] . '</td></tr>';
+					echo '</table>';
+					echo '<div style="width: ' . $options['resize']['width'] . 'px; height: ' . $options['resize']['height'] . 'px;">';
+					echo '<img src="' . $thumbUrl . '" style="border: 1px solid #CCC;">';
+					echo '</div>';
+					echo '</div>';
+				}
 			}
 		} else {
 			// Advanced test
@@ -177,7 +216,7 @@ $optionsDefault = [
 				'images/Squat training.jpg',
 				// Landscape
 				'images/F-16_Demo_Team_2722.jpg',
-				'images/image.img.jpg',
+				'images/controller-1.jpg',
 				// Portrait
 				'images/email-timing-full.jpg',
 				'images/gky7VZp.jpg'
@@ -195,47 +234,47 @@ $optionsDefault = [
 					]
 				],
 			];
-			//			$option2List = [
-			//				[
-			//					'resize' => [
-			//						'stretch'   => false,
-			//						'grayscale' => true,
-			//					]
-			//				],
-			//				[
-			//					'resize' => [
-			//						'stretch'   => true,
-			//						'grayscale' => false,
-			//					]
-			//				],
-			//			];
-			//			$option3List = [
-			//				[
-			//					'resize' => [
-			//						'align_x' => 'center',
-			//						'align_y' => 'top',
-			//					]
-			//				],
-			//				[
-			//					'resize' => [
-			//						'align_x' => 'center',
-			//						'align_y' => 'bottom',
-			//					]
-			//				],
-			//				[
-			//					'resize' => [
-			//						'align_x' => 'left',
-			//						'align_y' => 'middle',
-			//					]
-			//				],
-			//				[
-			//					'resize' => [
-			//						'align_x' => 'right',
-			//						'align_y' => 'middle',
-			//					]
-			//				],
-			//			];
-			$optionList = [];
+			$option2List = [
+				[
+					'resize' => [
+						'stretch'   => false,
+						'grayscale' => true,
+					]
+				],
+				[
+					'resize' => [
+						'stretch'   => true,
+						'grayscale' => false,
+					]
+				],
+			];
+			$option3List = [
+				[
+					'resize' => [
+						'align_x' => 'center',
+						'align_y' => 'top',
+					]
+				],
+				[
+					'resize' => [
+						'align_x' => 'center',
+						'align_y' => 'bottom',
+					]
+				],
+				[
+					'resize' => [
+						'align_x' => 'left',
+						'align_y' => 'middle',
+					]
+				],
+				[
+					'resize' => [
+						'align_x' => 'right',
+						'align_y' => 'middle',
+					]
+				],
+			];
+			$optionList  = [];
 			if (isset($option1List)) {
 				foreach ($option1List as $option1) {
 					if (isset($option2List)) {
@@ -261,11 +300,7 @@ $optionsDefault = [
 
 				foreach ($optionList as $options) {
 					echo '<div style="margin: 5px; padding: 5px; background: #EEE; border: 1px solid #CCC; float: left;">';
-
-					$thumbPath = Thumb::resize($image, $options);
-					$thumbUrl  = str_replace('E:\\GitHub\\php-thumb\\demo\\', './', $thumbPath);
-					$thumbUrl  = str_replace('\\', '/', $thumbUrl);
-
+					$thumbUrl = getThumbUrl($image, $options);
 					echo '<table width="100%" border="0">';
 					echo '<tr><th width="50%">Setting</th><th>Value</th></tr>';
 					echo '<tr><td>Size</td><td>' . $options['resize']['width'] . 'x' . $options['resize']['height'] . '</td></tr>';
@@ -276,11 +311,9 @@ $optionsDefault = [
 					echo '<tr><td>Grayscale</td><td>' . (int) $options['resize']['grayscale'] . '</td></tr>';
 					echo '<tr><td>Background</td><td>' . $options['resize']['background'] . '</td></tr>';
 					echo '</table>';
-
 					echo '<div style="width: ' . $options['resize']['width'] . 'px; height: ' . $options['resize']['height'] . 'px;">';
 					echo '<img src="' . $thumbUrl . '">';
 					echo '</div>';
-
 					echo '</div>';
 				}
 				echo '<div style="clear: both;"></div>';
