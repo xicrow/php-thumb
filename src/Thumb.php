@@ -91,7 +91,87 @@ class Thumb {
 	 */
 	public static function setOptions(array $options = []) {
 		// Merge options with default options
-		self::$options = array_replace_recursive(self::$options, $options);
+		self::$options = self::mergeOptions($options);
+	}
+
+	/**
+	 * Merge and return given options with default options
+	 *
+	 * @param array $options
+	 *
+	 * @return array
+	 */
+	public static function mergeOptions(array $options = []) {
+		return array_replace_recursive(self::$options, $options);
+	}
+
+	/**
+	 * Get full image path
+	 *
+	 * @param string $image
+	 * @param array  $options
+	 *
+	 * @return string
+	 */
+	public static function getImagePath($image, array $options = []) {
+		// Merge options with default options
+		$options = array_replace_recursive(self::$options, $options);
+
+		// Get full image path
+		// @todo Handle remote images
+		$imagePath = $image;
+		if (file_exists($imagePath)) {
+			$imagePath = realpath($imagePath);
+		} else {
+			$imagePath = rtrim($options['path_images'], DIRECTORY_SEPARATOR);
+			$imagePath .= DIRECTORY_SEPARATOR;
+			$imagePath .= ltrim($image, DIRECTORY_SEPARATOR);
+		}
+		$imagePath = str_replace(['/', '\\'], DIRECTORY_SEPARATOR, $imagePath);
+
+		// Return path to image
+		return $imagePath;
+	}
+
+	/**
+	 * Get full thumbnail path
+	 *
+	 * @param string $image
+	 * @param array  $options
+	 *
+	 * @return string
+	 */
+	public static function getThumbPath($image, array $options = []) {
+		// Merge options with default options
+		$options = array_replace_recursive(self::$options, $options);
+
+		// Get image path
+		$imagePath = self::getImagePath($image, $options);
+
+		// Get image modified
+		$imageModified = null;
+		if (file_exists($imagePath)) {
+			$imageModified = filemtime($imagePath);
+		}
+
+		// Get image path information
+		$imageFolder         = pathinfo($imagePath, PATHINFO_DIRNAME);
+		$imageFolderRelative = false;
+		if ($imageFolder != $options['path_images'] && strpos($imageFolder, $options['path_images']) !== false) {
+			$imageFolderRelative = trim(substr($imageFolder, strlen($options['path_images'])), DIRECTORY_SEPARATOR);
+		}
+		$imageFileName = pathinfo($imagePath, PATHINFO_FILENAME);
+		$imageFileExt  = pathinfo($imagePath, PATHINFO_EXTENSION);
+
+		// Set path to thumbnail file
+		$thumbPath = rtrim($options['path_thumbs'], DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR;
+		if ($imageFolderRelative) {
+			$thumbPath .= $imageFolderRelative . DIRECTORY_SEPARATOR;
+		}
+		$thumbPath .= $imageFileName . '-' . md5(json_encode($options) . $imageModified) . '.' . $imageFileExt;
+
+		// Return path to thumbnail
+		return $thumbPath;
 	}
 
 	/**
@@ -119,57 +199,36 @@ class Thumb {
 			die('\Xicrow\PhpThumb\Thumb: Invalid engine supplied');
 		}
 
-		// Get full image path
-		// @todo Handle remote images
-		$imagePath = $image;
-		if (!file_exists($imagePath)) {
-			$imagePath = rtrim($options['path_images'], DIRECTORY_SEPARATOR);
-			$imagePath .= DIRECTORY_SEPARATOR;
-			$imagePath .= ltrim($image, DIRECTORY_SEPARATOR);
-		}
-		$imagePath = str_replace(['/', '\\'], DIRECTORY_SEPARATOR, $imagePath);
+		// Get image path
+		$imagePath = self::getImagePath($image, $options);
 
-		if (!file_exists($imagePath)) {
-			die('\Xicrow\PhpThumb\Thumb: Image does not exist');
-		}
+		// Get thumbnail path
+		$thumbPath = self::getThumbPath($image, $options);
 
-		// Get image path information
-		$imageFolder         = pathinfo($imagePath, PATHINFO_DIRNAME);
-		$imageFolderRelative = false;
-		if ($imageFolder != $options['path_images'] && strpos($imageFolder, $options['path_images']) !== false) {
-			$imageFolderRelative = trim(substr($imageFolder, strlen($options['path_images'])), DIRECTORY_SEPARATOR);
-		}
-		$imageFileName = pathinfo($imagePath, PATHINFO_FILENAME);
-		$imageFileExt  = pathinfo($imagePath, PATHINFO_EXTENSION);
-
-		// Set path to thumbnail file
-		$thumbPath = rtrim($options['path_thumbs'], DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR;
-		if ($imageFolderRelative) {
-			$thumbPath .= $imageFolderRelative . DIRECTORY_SEPARATOR;
-		}
-		$thumbPath .= $imageFileName . '-' . md5(json_encode($options)) . '.' . $imageFileExt;
-
-		// If thumbnail does not already exist
-		if (!file_exists($thumbPath)) {
-			// Make the thumbnail engine work
-			$engine->load($imagePath, $options);
-			if ($options['resize'] && (!empty($options['resize']['width']) || !empty($options['resize']['height']))) {
-				$engine->resize($options['resize']);
-			}
-			if ($options['watermark'] && (!empty($options['watermark']['image']) || !empty($options['watermark']['text']))) {
-				// Check image path
-				if (!empty($options['watermark']['image']) && !file_exists($options['watermark']['image'])) {
-					$options['watermark']['image'] = rtrim($options['path_watermarks'], DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR . $options['watermark']['image'];
+		// If image exist
+		if (file_exists($imagePath)) {
+			// If thumbnail does not already exist
+			if (!file_exists($thumbPath)) {
+				// Make the thumbnail engine work
+				$engine->load($imagePath, $options);
+				if ($options['resize'] && (!empty($options['resize']['width']) || !empty($options['resize']['height']))) {
+					$engine->resize($options['resize']);
 				}
-				// Check font path
-				if (!empty($options['watermark']['text']) && !file_exists($options['watermark']['font'])) {
-					$options['watermark']['font'] = rtrim($options['path_fonts'], DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR . $options['watermark']['font'];
-				}
+				if ($options['watermark'] && (!empty($options['watermark']['image']) || !empty($options['watermark']['text']))) {
+					// Check image path
+					if (!empty($options['watermark']['image']) && !file_exists($options['watermark']['image'])) {
+						$options['watermark']['image'] = rtrim($options['path_watermarks'], DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR . $options['watermark']['image'];
+					}
+					// Check font path
+					if (!empty($options['watermark']['text']) && !file_exists($options['watermark']['font'])) {
+						$options['watermark']['font'] = rtrim($options['path_fonts'], DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR . $options['watermark']['font'];
+					}
 
-				$engine->watermark($options['watermark']);
+					$engine->watermark($options['watermark']);
+				}
+				$engine->save($thumbPath, $options);
+				unset($engine);
 			}
-			$engine->save($thumbPath, $options);
-			unset($engine);
 		}
 
 		// Return path to thumbnail
