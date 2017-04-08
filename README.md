@@ -20,7 +20,7 @@ See examples in the `demo` folder
 - PHPunit tests
 - Handle remote images
 - Improve demos
-- Use placeholder images for when errors occur (ie. missing images)
+- ~~Use placeholder images for when errors occur (ie. missing images)~~
 
 ## License
 Copyright &copy; 2017 Jan Ebsen
