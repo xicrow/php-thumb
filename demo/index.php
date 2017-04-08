@@ -38,7 +38,10 @@ Thumb::setOptions([
  */
 function getThumbUrl($image, $options = []) {
 	// Resize in seperate process
-	$thumbUrl = './webroot/thumbnails' . Helper::getThumbUrl($image, $options);
+	$thumbUrl = Helper::getThumbUrl($image, $options);
+	if (substr($thumbUrl, 0, 4) != 'http') {
+		$thumbUrl = './webroot/thumbnails' . $thumbUrl;
+	}
 
 	// Resize now
 	//					$thumbPath = Thumb::resize($image, $options);
@@ -132,45 +135,51 @@ $optionsDefault = [
 
 	<body>
 		<?php
+		$images = [
+			// Square
+			//			'images/1200x1200.jpg',
+			//			'images/Squat training.jpg',
+			// Landscape
+			'images/F-16_Demo_Team_2722.jpg',
+			//				'images/controller-1.jpg',
+			//				'images/controller-2.jpg',
+			//				'images/controller-3.jpg',
+			// Portrait
+			//				'images/email-timing-full.jpg',
+			//				'images/gky7VZp.jpg',
+			// Transparency
+			//				'images/2000px-Chevronny_demo.svg.png',
+			//				'images/Doom_logo.png',
+			// Trigger placeholder images
+			//				'',
+			//				'images/non-existing.jpg',
+		];
 		if (true) {
 			// Simple test
-			$images = [
-				// Landscape
-				'images/F-16_Demo_Team_2722.jpg',
-				//				'images/controller-1.jpg',
-				//				'images/controller-2.jpg',
-				//				'images/controller-3.jpg',
-				// Portrait
-				//				'images/email-timing-full.jpg',
-				//				'images/gky7VZp.jpg',
-				// Transparency
-				//				'images/2000px-Chevronny_demo.svg.png',
-				'images/Doom_logo.png',
-			];
+			$options = array_replace_recursive($optionsDefault, [
+				'resize'    => [
+					'width'     => 800,
+					'height'    => 600,
+					'method'    => 'crop',
+					'stretch'   => false,
+					'trim'      => false,
+					'align_x'   => 'center',
+					'align_y'   => 'bottom',
+					'grayscale' => false,
+				],
+				'watermark' => [
+					'image'     => false,
+					'width'     => 155,
+					'height'    => 100,
+					'text'      => false,
+					'font'      => 'arial.ttf',
+					'font_size' => 20,
+					'color'     => '#000000',
+					'align_x'   => 'right',
+					'align_y'   => 'bottom',
+				],
+			]);
 			foreach ($images as $image) {
-				$options = array_replace_recursive($optionsDefault, [
-					'resize'    => [
-						'width'     => 800,
-						'height'    => 600,
-						'method'    => 'crop',
-						'stretch'   => false,
-						'trim'      => false,
-						'align_x'   => 'center',
-						'align_y'   => 'bottom',
-						'grayscale' => false,
-					],
-					'watermark' => [
-						'image'     => false,
-						'width'     => 155,
-						'height'    => 100,
-						'text'      => false,
-						'font'      => 'arial.ttf',
-						'font_size' => 20,
-						'color'     => '#000000',
-						'align_x'   => 'right',
-						'align_y'   => 'bottom',
-					],
-				]);
 
 				if (true) {
 					echo '<div style="margin: 5px; padding: 5px; background: #EEE; border: 1px solid #CCC; float: left;">';
@@ -212,18 +221,6 @@ $optionsDefault = [
 
 		if (false) {
 			// Advanced test
-			$images = [
-				// Square
-				'images/1200x1200.jpg',
-				'images/Squat training.jpg',
-				// Landscape
-				'images/F-16_Demo_Team_2722.jpg',
-				'images/controller-1.jpg',
-				// Portrait
-				'images/email-timing-full.jpg',
-				'images/gky7VZp.jpg',
-			];
-
 			$option1List = [
 				[
 					'resize' => [
