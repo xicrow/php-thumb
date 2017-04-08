@@ -219,19 +219,19 @@ $optionsDefault = [
 				'images/controller-1.jpg',
 				// Portrait
 				'images/email-timing-full.jpg',
-				'images/gky7VZp.jpg'
+				'images/gky7VZp.jpg',
 			];
 
 			$option1List = [
 				[
 					'resize' => [
 						'method' => 'fit',
-					]
+					],
 				],
 				[
 					'resize' => [
 						'method' => 'crop',
-					]
+					],
 				],
 			];
 			$option2List = [
@@ -239,13 +239,13 @@ $optionsDefault = [
 					'resize' => [
 						'stretch'   => false,
 						'grayscale' => true,
-					]
+					],
 				],
 				[
 					'resize' => [
 						'stretch'   => true,
 						'grayscale' => false,
-					]
+					],
 				],
 			];
 			$option3List = [
@@ -253,25 +253,25 @@ $optionsDefault = [
 					'resize' => [
 						'align_x' => 'center',
 						'align_y' => 'top',
-					]
+					],
 				],
 				[
 					'resize' => [
 						'align_x' => 'center',
 						'align_y' => 'bottom',
-					]
+					],
 				],
 				[
 					'resize' => [
 						'align_x' => 'left',
 						'align_y' => 'middle',
-					]
+					],
 				],
 				[
 					'resize' => [
 						'align_x' => 'right',
 						'align_y' => 'middle',
-					]
+					],
 				],
 			];
 			$optionList  = [];

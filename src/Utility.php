@@ -40,7 +40,7 @@ class Utility {
 			'txtclr'   => '444444',
 			'txttrack' => 0,
 			'txtsize'  => 60,
-			'original' => $url
+			'original' => $url,
 		];
 		$urlQuery = array_map(function ($key, $value) {
 			return $key . '=' . $value;
@@ -105,7 +105,7 @@ class Utility {
 				'jpg'  => 'image/jpeg',
 				'jpeg' => 'image/jpeg',
 				'png'  => 'image/png',
-				'gif'  => 'image/gif'
+				'gif'  => 'image/gif',
 			];
 
 			if (strlen($ext) && strlen($types[$ext])) {
@@ -145,7 +145,7 @@ class Utility {
 		if (!$max_width and !$max_height) {
 			return [
 				$current_width,
-				$current_height
+				$current_height,
 			];
 		}
 
@@ -189,7 +189,7 @@ class Utility {
 
 		return [
 			$w,
-			$h
+			$h,
 		];
 	}
 
@@ -207,7 +207,7 @@ class Utility {
 			return [
 				hexdec(str_repeat(substr($color, 0, 1), 2)),
 				hexdec(str_repeat(substr($color, 1, 1), 2)),
-				hexdec(str_repeat(substr($color, 2, 1), 2))
+				hexdec(str_repeat(substr($color, 2, 1), 2)),
 			];
 		}
 
@@ -215,7 +215,7 @@ class Utility {
 			return [
 				hexdec(substr($color, 0, 2)),
 				hexdec(substr($color, 2, 2)),
-				hexdec(substr($color, 4, 2))
+				hexdec(substr($color, 4, 2)),
 			];
 		}
 
