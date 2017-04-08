@@ -78,10 +78,26 @@ class Thumb {
 	 * Set the engine to use for resizing
 	 *
 	 * @param string $engine
+	 *
+	 * @return bool
 	 */
 	public static function setEngine($engine) {
+		// Check if supplied engine is valid
+		if (!class_exists($engine)) {
+			// Return false, invalid engine
+			return false;
+		}
+		$engineInstance = new $engine();
+		if (!$engineInstance instanceof EngineInterface) {
+			// Return false, invalid engine
+			return false;
+		}
+
 		// Set engine to use
 		self::$engine = $engine;
+
+		// Return true, new engine set
+		return true;
 	}
 
 	/**
@@ -115,7 +131,7 @@ class Thumb {
 	 */
 	public static function getImagePath($image, array $options = []) {
 		// Merge options with default options
-		$options = array_replace_recursive(self::$options, $options);
+		$options = self::mergeOptions($options);
 
 		// Get full image path
 		// @todo Handle remote images
@@ -143,7 +159,7 @@ class Thumb {
 	 */
 	public static function getThumbPath($image, array $options = []) {
 		// Merge options with default options
-		$options = array_replace_recursive(self::$options, $options);
+		$options = self::mergeOptions($options);
 
 		// Get image path
 		$imagePath = self::getImagePath($image, $options);
@@ -184,20 +200,7 @@ class Thumb {
 	 */
 	public static function resize($image, array $options = []) {
 		// Merge options with default options
-		$options = array_replace_recursive(self::$options, $options);
-
-		// Get engine
-		$engine = false;
-		if (class_exists(self::$engine)) {
-			$engine = new self::$engine();
-			if (!$engine instanceof EngineInterface) {
-				$engine = false;
-			}
-		}
-
-		if (!$engine) {
-			die('\Xicrow\PhpThumb\Thumb: Invalid engine supplied');
-		}
+		$options = self::mergeOptions($options);
 
 		// Get image path
 		$imagePath = self::getImagePath($image, $options);
@@ -209,24 +212,34 @@ class Thumb {
 		if (file_exists($imagePath)) {
 			// If thumbnail does not already exist
 			if (!file_exists($thumbPath)) {
-				// Make the thumbnail engine work
+				/**
+				 * Get engine instance
+				 *
+				 * @var \Xicrow\PhpThumb\EngineInterface $engine
+				 */
+				$engine = new self::$engine();
+
+				// Load image
 				$engine->load($imagePath, $options);
 				if ($options['resize'] && (!empty($options['resize']['width']) || !empty($options['resize']['height']))) {
+					// Resize
 					$engine->resize($options['resize']);
 				}
 				if ($options['watermark'] && (!empty($options['watermark']['image']) || !empty($options['watermark']['text']))) {
-					// Check image path
+					// Watermark
 					if (!empty($options['watermark']['image']) && !file_exists($options['watermark']['image'])) {
 						$options['watermark']['image'] = rtrim($options['path_watermarks'], DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR . $options['watermark']['image'];
 					}
-					// Check font path
 					if (!empty($options['watermark']['text']) && !file_exists($options['watermark']['font'])) {
 						$options['watermark']['font'] = rtrim($options['path_fonts'], DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR . $options['watermark']['font'];
 					}
-
 					$engine->watermark($options['watermark']);
 				}
+
+				// Save thumbnail
 				$engine->save($thumbPath, $options);
+
+				// Clear engine from memory
 				unset($engine);
 			}
 		}
