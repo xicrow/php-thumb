@@ -132,11 +132,11 @@ $optionsDefault = [
 
 	<body>
 		<?php
-		if (false) {
+		if (true) {
 			// Simple test
 			$images = [
 				// Landscape
-				//				'images/F-16_Demo_Team_2722.jpg',
+				'images/F-16_Demo_Team_2722.jpg',
 				//				'images/controller-1.jpg',
 				//				'images/controller-2.jpg',
 				//				'images/controller-3.jpg',
@@ -145,7 +145,7 @@ $optionsDefault = [
 				//				'images/gky7VZp.jpg',
 				// Transparency
 				//				'images/2000px-Chevronny_demo.svg.png',
-				//				'images/Doom_logo.png',
+				'images/Doom_logo.png',
 			];
 			foreach ($images as $image) {
 				$options = array_replace_recursive($optionsDefault, [
@@ -208,7 +208,9 @@ $optionsDefault = [
 					echo '</div>';
 				}
 			}
-		} else {
+		}
+
+		if (false) {
 			// Advanced test
 			$images = [
 				// Square
