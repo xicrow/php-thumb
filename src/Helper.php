@@ -19,6 +19,25 @@ class Helper {
 		// Merge options with Thumb default options
 		$options = Thumb::mergeOptions($options);
 
+		// Return placeholder if not image is given
+		if (empty($image)) {
+			return Utility::getPlaceholderImage($image, [
+				'width'  => $options['resize']['width'],
+				'height' => $options['resize']['height'],
+				'text'   => 'Image not given',
+			]);
+		}
+
+		// Return placeholder if image does not exist
+		$imagePath = Thumb::getImagePath($image, $options);
+		if (!is_file($imagePath) || !file_exists($imagePath) || !is_readable($imagePath)) {
+			return Utility::getPlaceholderImage($image, [
+				'width'  => $options['resize']['width'],
+				'height' => $options['resize']['height'],
+				'text'   => 'Image not found',
+			]);
+		}
+
 		// Save options to file
 		if (!self::saveOptions($image, $options)) {
 			die('\Xicrow\PhpThumb\Helper: Unable to save options');
