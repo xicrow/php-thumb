@@ -17,6 +17,7 @@ See examples in the `demo` folder
 ## TODO
 - ~~Handle remote images~~
 - ~~Use placeholder images for when errors occur (ie. missing images)~~
+- Cleanup code structure and flow
 - Improve demos
 - PHPunit tests
 
