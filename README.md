@@ -17,10 +17,10 @@ The recommended way to install is through [Composer](https://getcomposer.org/).
 See examples in the `demo` folder
 
 ## TODO
-- PHPunit tests
-- Handle remote images
-- Improve demos
+- ~~Handle remote images~~
 - ~~Use placeholder images for when errors occur (ie. missing images)~~
+- Improve demos
+- PHPunit tests
 
 ## License
 Copyright &copy; 2017 Jan Ebsen
