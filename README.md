@@ -15,10 +15,10 @@ The recommended way to install is through [Composer](https://getcomposer.org/).
 See examples in the `demo` folder
 
 ## TODO
-- PHPunit tests
-- Handle remote images
+- ~~Handle remote images~~
+- ~~Use placeholder images for when errors occur (ie. missing images)~~
 - Improve demos
-- Use placeholder images for when errors occur (ie. missing images)
+- PHPunit tests
 
 ## License
 Copyright &copy; 2017 Jan Ebsen

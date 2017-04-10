@@ -36,11 +36,11 @@ class Utility {
 			'w'        => $options['width'],
 			'h'        => $options['height'],
 			'txt'      => urlencode($options['text']),
-			'bg'       => 'ECECEC',
-			'txtclr'   => '444444',
+			'bg'       => 'FFFFFF',
+			'txtclr'   => '777777',
 			'txttrack' => 0,
 			'txtsize'  => 60,
-			'original' => $url
+			'original' => $url,
 		];
 		$urlQuery = array_map(function ($key, $value) {
 			return $key . '=' . $value;
@@ -105,7 +105,7 @@ class Utility {
 				'jpg'  => 'image/jpeg',
 				'jpeg' => 'image/jpeg',
 				'png'  => 'image/png',
-				'gif'  => 'image/gif'
+				'gif'  => 'image/gif',
 			];
 
 			if (strlen($ext) && strlen($types[$ext])) {
@@ -145,7 +145,7 @@ class Utility {
 		if (!$max_width and !$max_height) {
 			return [
 				$current_width,
-				$current_height
+				$current_height,
 			];
 		}
 
@@ -189,7 +189,7 @@ class Utility {
 
 		return [
 			$w,
-			$h
+			$h,
 		];
 	}
 
@@ -207,7 +207,7 @@ class Utility {
 			return [
 				hexdec(str_repeat(substr($color, 0, 1), 2)),
 				hexdec(str_repeat(substr($color, 1, 1), 2)),
-				hexdec(str_repeat(substr($color, 2, 1), 2))
+				hexdec(str_repeat(substr($color, 2, 1), 2)),
 			];
 		}
 
@@ -215,10 +215,133 @@ class Utility {
 			return [
 				hexdec(substr($color, 0, 2)),
 				hexdec(substr($color, 2, 2)),
-				hexdec(substr($color, 4, 2))
+				hexdec(substr($color, 4, 2)),
 			];
 		}
 
 		return false;
+	}
+
+	/**
+	 * Make a cURL request for a given URL
+	 *
+	 * @param string $url
+	 * @param array  $options [
+	 * 'type'         => 'ping',
+	 * 'validate_url' => false,
+	 * 'timeout'      => 300,
+	 * 'redirect'     => 1
+	 * ]
+	 *
+	 * @return mixed
+	 */
+	public static function curlRequest($url, $options = []) {
+		// Merge options with default options
+		$options = array_merge([
+			// (string) Request type: ping|headers|body
+			'type'         => 'ping',
+			// (boolean) Validate URL
+			'validate_url' => false,
+			// (integer) Timeout for the request
+			'timeout'      => 300,
+			// (integer) Number of redirects to follow
+			'redirect'     => 1,
+			// (array) Custom HTTP headers
+			'http_headers' => [],
+			// (array) Custom cURL options
+			'curl_options' => [],
+		], $options);
+
+		// Validate URL ?
+		if ($options['validate_url']) {
+			// Rebuild URL path to ensure proper formatting
+			$urlParts = parse_url($url);
+			if (isset($urlParts['path'])) {
+				$tmpArr           = explode('/', trim($urlParts['path'], '/'));
+				$urlParts['path'] = '';
+				foreach ($tmpArr as $tmp) {
+					$urlParts['path'] .= '/' . rawurlencode($tmp);
+				}
+			}
+
+			// Check for valid URL
+			if (!is_array($urlParts) || !isset($urlParts['scheme'])) {
+				return false;
+			}
+
+			// Rebuild URL
+			$url = $urlParts['scheme'] . '://' . $urlParts['host'] . (isset($urlParts['path']) ? $urlParts['path'] : '') . (isset($urlParts['query']) ? '?' . $urlParts['query'] : '');
+		}
+
+		// Set default return value
+		$returnValue = false;
+
+		// Set cURL options
+		$curlOptions = [
+			CURLOPT_USERAGENT      => 'Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 5.1)',
+			CURLOPT_FAILONERROR    => true,
+			CURLOPT_RETURNTRANSFER => true,
+			CURLOPT_SSL_VERIFYPEER => false,
+			CURLOPT_CONNECTTIMEOUT => ceil($options['timeout'] / 10),
+			CURLOPT_TIMEOUT        => $options['timeout'],
+			CURLOPT_FOLLOWLOCATION => (bool) $options['redirect'],
+			CURLOPT_MAXREDIRS      => $options['redirect'],
+		];
+
+		// Set options based on type
+		switch ($options['type']) {
+			case 'ping':
+				$curlOptions += [
+					CURLOPT_NOBODY => true,
+				];
+			break;
+			case 'headers':
+				$curlOptions += [
+					CURLOPT_NOBODY   => true,
+					CURLOPT_HEADER   => true,
+					CURLOPT_FILETIME => true,
+				];
+			break;
+			case 'body':
+				$curlOptions += [];
+			break;
+		}
+
+		// Apply custom HTTP headers, if given
+		if (is_array($options['http_headers']) && count($options['http_headers'])) {
+			$curlOptions += [
+				CURLOPT_HTTPHEADER => $options['http_headers'],
+			];
+		}
+
+		// Apply custom cURL options, if given
+		if (is_array($options['curl_options']) && count($options['curl_options'])) {
+			$curlOptions += $options['curl_options'];
+		}
+
+		// Execute cURL request
+		$curl = curl_init($url);
+		curl_setopt_array($curl, $curlOptions);
+		$response = curl_exec($curl);
+
+		// Set return value based on type
+		switch ($options['type']) {
+			case 'ping':
+				$returnValue = (curl_getinfo($curl, CURLINFO_HTTP_CODE) === 200);
+			break;
+			case 'headers':
+				$returnValue = curl_getinfo($curl);
+				ksort($returnValue);
+			break;
+			case 'body':
+				$returnValue = $response;
+			break;
+		}
+
+		// Close cURL handle
+		curl_close($curl);
+
+		// Return the return value
+		return $returnValue;
 	}
 }

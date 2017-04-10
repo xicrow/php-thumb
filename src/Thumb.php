@@ -20,16 +20,20 @@ class Thumb {
 	 * @var array
 	 */
 	private static $options = [
+		// Path to folder for remote cache
+		'remote.cache'         => './cache_remote',
+		// Expires time for remote cache
+		'remote.cache.expires' => '1 month',
 		// Full path to folder used for images given with relative path
-		'path_images'     => './images',
+		'path_images'          => './images',
 		// Full path to folder used for thumbnails
-		'path_thumbs'     => './thumbs',
+		'path_thumbs'          => './thumbs',
 		// Full path to folder used for watermarks given with relative path
-		'path_watermarks' => './watermarks',
+		'path_watermarks'      => './watermarks',
 		// Full path to folder used for fonts given with relative path
-		'path_fonts'      => './Fonts',
+		'path_fonts'           => './Fonts',
 		// Resize options
-		'resize'          => [
+		'resize'               => [
 			// Width of the thumbnail (empty value to auto calculate in relation to height)
 			'width'      => 500,
 			// Height of the thumbnail (empty value to auto calculate in relation to width)
@@ -50,7 +54,7 @@ class Thumb {
 			'grayscale'  => false,
 		],
 		// Watermark options
-		'watermark'       => [
+		'watermark'            => [
 			// Image to add as watermark
 			'image'     => false,
 			// Width of the watermark image
@@ -71,17 +75,33 @@ class Thumb {
 			'align_y'   => 'middle',
 		],
 		// Quality of the generated image
-		'quality'         => 80,
+		'quality'              => 80,
 	];
 
 	/**
 	 * Set the engine to use for resizing
 	 *
 	 * @param string $engine
+	 *
+	 * @return bool
 	 */
 	public static function setEngine($engine) {
+		// Check if supplied engine is valid
+		if (!class_exists($engine)) {
+			// Return false, invalid engine
+			return false;
+		}
+		$engineInstance = new $engine();
+		if (!$engineInstance instanceof EngineInterface) {
+			// Return false, invalid engine
+			return false;
+		}
+
 		// Set engine to use
 		self::$engine = $engine;
+
+		// Return true, new engine set
+		return true;
 	}
 
 	/**
@@ -115,19 +135,64 @@ class Thumb {
 	 */
 	public static function getImagePath($image, array $options = []) {
 		// Merge options with default options
-		$options = array_replace_recursive(self::$options, $options);
+		$options = self::mergeOptions($options);
 
-		// Get full image path
-		// @todo Handle remote images
-		$imagePath = $image;
-		if (file_exists($imagePath)) {
-			$imagePath = realpath($imagePath);
+		// Remote file ?
+		if (substr($image, 0, 4) == 'http') {
+			// Set path for remote cache file
+			$remoteCachePath = $image;
+			$remoteCachePath = ltrim($remoteCachePath, 'https://');
+			$remoteCachePath = str_replace('~', '', $remoteCachePath);
+			$remoteCachePath = preg_replace('#/{2,}#', '/', $remoteCachePath);
+			if (strpos($remoteCachePath, '?') !== false) {
+				$remoteCachePath = substr($remoteCachePath, 0, strpos($remoteCachePath, '?'));
+			}
+			$remoteCachePath = str_replace('/', DIRECTORY_SEPARATOR, $remoteCachePath);
+			$remoteCachePath = $options['remote.cache'] . DIRECTORY_SEPARATOR . $remoteCachePath;
+
+			// Check if remote cache exists and is valid
+			$remoteCacheValid = false;
+			if (file_exists($remoteCachePath) && is_file($remoteCachePath) && is_readable($remoteCachePath)) {
+				$remoteCacheExpireTime = strtotime('+' . $options['remote.cache.expires'], filemtime($remoteCachePath));
+				$remoteCacheValid      = ($remoteCacheExpireTime > time());
+			}
+
+			// If remote cache is not valid
+			if (!$remoteCacheValid) {
+				// Get remote data
+				$remoteData = Utility::curlRequest($image, [
+					'type'         => 'body',
+					'validate_url' => false,
+					'timeout'      => 5,
+					'redirect'     => 1,
+				]);
+
+				// Save remote data to cache
+				if (!file_exists(dirname($remoteCachePath))) {
+					mkdir(dirname($remoteCachePath), 0755, true);
+				}
+				file_put_contents($remoteCachePath, $remoteData);
+			}
+
+			// Check if remote cache has any data
+			if (filesize($remoteCachePath) == 0) {
+				$remoteCachePath = false;
+			}
+
+			// Return path to remote cache
+			$imagePath = $remoteCachePath;
 		} else {
-			$imagePath = rtrim($options['path_images'], DIRECTORY_SEPARATOR);
-			$imagePath .= DIRECTORY_SEPARATOR;
-			$imagePath .= ltrim($image, DIRECTORY_SEPARATOR);
+			// Get full image path
+			$imagePath = $image;
+			if (file_exists($imagePath)) {
+				$imagePath = realpath($imagePath);
+			} else {
+				$imagePath = rtrim($options['path_images'], DIRECTORY_SEPARATOR);
+				$imagePath .= DIRECTORY_SEPARATOR;
+				$imagePath .= ltrim($image, DIRECTORY_SEPARATOR);
+			}
+			$imagePath = str_replace(['/', '\\'], DIRECTORY_SEPARATOR, $imagePath);
 		}
-		$imagePath = str_replace(['/', '\\'], DIRECTORY_SEPARATOR, $imagePath);
 
 		// Return path to image
 		return $imagePath;
@@ -143,7 +208,7 @@ class Thumb {
 	 */
 	public static function getThumbPath($image, array $options = []) {
 		// Merge options with default options
-		$options = array_replace_recursive(self::$options, $options);
+		$options = self::mergeOptions($options);
 
 		// Get image path
 		$imagePath = self::getImagePath($image, $options);
@@ -184,20 +249,7 @@ class Thumb {
 	 */
 	public static function resize($image, array $options = []) {
 		// Merge options with default options
-		$options = array_replace_recursive(self::$options, $options);
-
-		// Get engine
-		$engine = false;
-		if (class_exists(self::$engine)) {
-			$engine = new self::$engine();
-			if (!$engine instanceof EngineInterface) {
-				$engine = false;
-			}
-		}
-
-		if (!$engine) {
-			die('\Xicrow\PhpThumb\Thumb: Invalid engine supplied');
-		}
+		$options = self::mergeOptions($options);
 
 		// Get image path
 		$imagePath = self::getImagePath($image, $options);
@@ -209,24 +261,34 @@ class Thumb {
 		if (file_exists($imagePath)) {
 			// If thumbnail does not already exist
 			if (!file_exists($thumbPath)) {
-				// Make the thumbnail engine work
+				/**
+				 * Get engine instance
+				 *
+				 * @var \Xicrow\PhpThumb\EngineInterface $engine
+				 */
+				$engine = new self::$engine();
+
+				// Load image
 				$engine->load($imagePath, $options);
 				if ($options['resize'] && (!empty($options['resize']['width']) || !empty($options['resize']['height']))) {
+					// Resize
 					$engine->resize($options['resize']);
 				}
 				if ($options['watermark'] && (!empty($options['watermark']['image']) || !empty($options['watermark']['text']))) {
-					// Check image path
+					// Watermark
 					if (!empty($options['watermark']['image']) && !file_exists($options['watermark']['image'])) {
 						$options['watermark']['image'] = rtrim($options['path_watermarks'], DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR . $options['watermark']['image'];
 					}
-					// Check font path
 					if (!empty($options['watermark']['text']) && !file_exists($options['watermark']['font'])) {
 						$options['watermark']['font'] = rtrim($options['path_fonts'], DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR . $options['watermark']['font'];
 					}
-
 					$engine->watermark($options['watermark']);
 				}
+
+				// Save thumbnail
 				$engine->save($thumbPath, $options);
+
+				// Clear engine from memory
 				unset($engine);
 			}
 		}
