@@ -20,16 +20,20 @@ class Thumb {
 	 * @var array
 	 */
 	private static $options = [
+		// Path to folder for remote cache
+		'remote.cache'         => './cache_remote',
+		// Expires time for remote cache
+		'remote.cache.expires' => '1 month',
 		// Full path to folder used for images given with relative path
-		'path_images'     => './images',
+		'path_images'          => './images',
 		// Full path to folder used for thumbnails
-		'path_thumbs'     => './thumbs',
+		'path_thumbs'          => './thumbs',
 		// Full path to folder used for watermarks given with relative path
-		'path_watermarks' => './watermarks',
+		'path_watermarks'      => './watermarks',
 		// Full path to folder used for fonts given with relative path
-		'path_fonts'      => './Fonts',
+		'path_fonts'           => './Fonts',
 		// Resize options
-		'resize'          => [
+		'resize'               => [
 			// Width of the thumbnail (empty value to auto calculate in relation to height)
 			'width'      => 500,
 			// Height of the thumbnail (empty value to auto calculate in relation to width)
@@ -50,7 +54,7 @@ class Thumb {
 			'grayscale'  => false,
 		],
 		// Watermark options
-		'watermark'       => [
+		'watermark'            => [
 			// Image to add as watermark
 			'image'     => false,
 			// Width of the watermark image
@@ -71,7 +75,7 @@ class Thumb {
 			'align_y'   => 'middle',
 		],
 		// Quality of the generated image
-		'quality'         => 80,
+		'quality'              => 80,
 	];
 
 	/**
@@ -133,17 +137,62 @@ class Thumb {
 		// Merge options with default options
 		$options = self::mergeOptions($options);
 
-		// Get full image path
-		// @todo Handle remote images
-		$imagePath = $image;
-		if (file_exists($imagePath)) {
-			$imagePath = realpath($imagePath);
+		// Remote file ?
+		if (substr($image, 0, 4) == 'http') {
+			// Set path for remote cache file
+			$remoteCachePath = $image;
+			$remoteCachePath = ltrim($remoteCachePath, 'https://');
+			$remoteCachePath = str_replace('~', '', $remoteCachePath);
+			$remoteCachePath = preg_replace('#/{2,}#', '/', $remoteCachePath);
+			if (strpos($remoteCachePath, '?') !== false) {
+				$remoteCachePath = substr($remoteCachePath, 0, strpos($remoteCachePath, '?'));
+			}
+			$remoteCachePath = str_replace('/', DIRECTORY_SEPARATOR, $remoteCachePath);
+			$remoteCachePath = $options['remote.cache'] . DIRECTORY_SEPARATOR . $remoteCachePath;
+
+			// Check if remote cache exists and is valid
+			$remoteCacheValid = false;
+			if (file_exists($remoteCachePath) && is_file($remoteCachePath) && is_readable($remoteCachePath)) {
+				$remoteCacheExpireTime = strtotime('+' . $options['remote.cache.expires'], filemtime($remoteCachePath));
+				$remoteCacheValid      = ($remoteCacheExpireTime > time());
+			}
+
+			// If remote cache is not valid
+			if (!$remoteCacheValid) {
+				// Get remote data
+				$remoteData = Utility::curlRequest($image, [
+					'type'         => 'body',
+					'validate_url' => false,
+					'timeout'      => 5,
+					'redirect'     => 1,
+				]);
+
+				// Save remote data to cache
+				if (!file_exists(dirname($remoteCachePath))) {
+					mkdir(dirname($remoteCachePath), 0755, true);
+				}
+				file_put_contents($remoteCachePath, $remoteData);
+			}
+
+			// Check if remote cache has any data
+			if (filesize($remoteCachePath) == 0) {
+				$remoteCachePath = false;
+			}
+
+			// Return path to remote cache
+			$imagePath = $remoteCachePath;
 		} else {
-			$imagePath = rtrim($options['path_images'], DIRECTORY_SEPARATOR);
-			$imagePath .= DIRECTORY_SEPARATOR;
-			$imagePath .= ltrim($image, DIRECTORY_SEPARATOR);
+			// Get full image path
+			$imagePath = $image;
+			if (file_exists($imagePath)) {
+				$imagePath = realpath($imagePath);
+			} else {
+				$imagePath = rtrim($options['path_images'], DIRECTORY_SEPARATOR);
+				$imagePath .= DIRECTORY_SEPARATOR;
+				$imagePath .= ltrim($image, DIRECTORY_SEPARATOR);
+			}
+			$imagePath = str_replace(['/', '\\'], DIRECTORY_SEPARATOR, $imagePath);
 		}
-		$imagePath = str_replace(['/', '\\'], DIRECTORY_SEPARATOR, $imagePath);
 
 		// Return path to image
 		return $imagePath;
