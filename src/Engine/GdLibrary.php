@@ -436,7 +436,7 @@ class GdLibrary implements EngineInterface {
 
 		// Save image data to file path
 		if (strpos($this->mimeType, 'png') !== false) {
-			return imagepng($this->resourceCurrent, $file, floor($options['quality'] * 0.09));
+			return imagepng($this->resourceCurrent, $file, 9);
 		} else {
 			return imagejpeg($this->resourceCurrent, $file, $options['quality']);
 		}
