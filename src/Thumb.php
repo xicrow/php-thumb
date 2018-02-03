@@ -144,10 +144,13 @@ class Thumb {
 			$remoteCachePath = ltrim($remoteCachePath, 'https://');
 			$remoteCachePath = str_replace('~', '', $remoteCachePath);
 			$remoteCachePath = preg_replace('#/{2,}#', '/', $remoteCachePath);
-			if (strpos($remoteCachePath, '?') !== false) {
-				$remoteCachePath = substr($remoteCachePath, 0, strpos($remoteCachePath, '?'));
+			if (mb_strpos($remoteCachePath, '?') !== false) {
+				$remoteCachePath = mb_substr($remoteCachePath, 0, mb_strpos($remoteCachePath, '?')) . '-'.md5(mb_substr($remoteCachePath, mb_strpos($remoteCachePath, '?')));
 			}
 			$remoteCachePath = str_replace('/', DIRECTORY_SEPARATOR, $remoteCachePath);
+			if (!preg_match('#\.(jpg|jpeg|png|gif)#', $remoteCachePath)) {
+			    $remoteCachePath.= '.jpg';
+            }
 			$remoteCachePath = $options['remote.cache'] . DIRECTORY_SEPARATOR . $remoteCachePath;
 
 			// Check if remote cache exists and is valid
@@ -184,12 +187,13 @@ class Thumb {
 		} else {
 			// Get full image path
 			$imagePath = $image;
+			if (mb_strpos($imagePath, '?') !== false) {
+				$imagePath = mb_substr($imagePath, 0, mb_strpos($imagePath, '?'));
+			}
 			if (file_exists($imagePath)) {
 				$imagePath = realpath($imagePath);
 			} else {
-				$imagePath = rtrim($options['path_images'], DIRECTORY_SEPARATOR);
-				$imagePath .= DIRECTORY_SEPARATOR;
-				$imagePath .= ltrim($image, DIRECTORY_SEPARATOR);
+				$imagePath = rtrim($options['path_images'], DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR . ltrim($imagePath, DIRECTORY_SEPARATOR);
 			}
 			$imagePath = str_replace(['/', '\\'], DIRECTORY_SEPARATOR, $imagePath);
 		}
