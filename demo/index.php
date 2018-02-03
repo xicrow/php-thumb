@@ -143,6 +143,8 @@ $optionsDefault = [
 			// Square
 			//			'images/1200x1200.jpg',
 			//			'images/Squat training.jpg',
+            //			'images/1200x1200.jpg?ver1',
+            //			'images/Squat training.jpg?ver2',
 			// Landscape
 			//			'images/F-16_Demo_Team_2722.jpg',
 			//			'images/controller-1.jpg',
@@ -151,20 +153,21 @@ $optionsDefault = [
 			// Portrait
 			//			'images/email-timing-full.jpg',
 			//			'images/gky7VZp.jpg',
-
 			// Transparency
 			//			'images/2000px-Chevronny_demo.svg.png',
 			//			'images/Doom_logo.png',
-
 			// Remote
-			'http://voids.dk/testpat.jpg',
-			'https://www.aceandtate.com/skin/frontend/aceandtate/default/img/prescription/prescription-landing-character-map.png',
-
+            //			'http://voids.dk/testpat.jpg',
+            //			'https://www.aceandtate.com/skin/frontend/aceandtate/default/img/prescription/prescription-landing-character-map.png',
+            //			'http://via.placeholder.com/300x300',
+            //			'http://via.placeholder.com/300x300?text=Test+1',
+            //			'http://via.placeholder.com/300x300?text=Test+2',
+            //			'http://via.placeholder.com/300x300?text=Test+3',
 			// Trigger placeholder images
 			//			'',
 			//			'images/non-existing.jpg',
 		];
-		if (true) {
+		if (false) {
 			// Simple test
 			$options = array_replace_recursive($optionsDefault, [
 				'resize'    => [
