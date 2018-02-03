@@ -13,7 +13,7 @@ if (!empty($_SERVER['SCRIPT_NAME'])) {
 }
 
 // Get path for thumbnail
-$thumbPath = __DIR__ . DIRECTORY_SEPARATOR . $thumbUrl;
+$thumbPath = __DIR__ . DIRECTORY_SEPARATOR . ltrim($thumbUrl, '/');
 $thumbPath = str_replace('/', DIRECTORY_SEPARATOR, $thumbPath);
 if ($queryPos = strpos($thumbPath, '?')) {
 	$thumbPath = substr($thumbPath, 0, $queryPos);
