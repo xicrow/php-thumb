@@ -1,6 +1,9 @@
 # Thumb
 Thumbnail generation for PHP
 
+[![Packagist Latest Stable Version](https://poser.pugx.org/xicrow/php-thumb/v/stable)](https://packagist.org/packages/xicrow/php-thumb)
+[![Packagist Total Downloads](https://poser.pugx.org/xicrow/php-thumb/downloads)](https://packagist.org/packages/xicrow/php-thumb)
+
 ## Installation
 The recommended way to install is through [Composer](https://getcomposer.org/).
 ```JSON
