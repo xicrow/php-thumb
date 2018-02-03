@@ -6,7 +6,7 @@ The recommended way to install is through [Composer](https://getcomposer.org/).
 ```JSON
 {
     "require": {
-        "xicrow/php-thumb": "^1.0"
+        "xicrow/php-thumb": "~1.0"
     }
 }
 ```
