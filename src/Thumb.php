@@ -142,11 +142,21 @@ class Thumb
         // Merge options with default options
         $options = self::mergeOptions($options);
 
+        // Protocol-less URL
+        if (substr($image, 0, 2) == '//') {
+            $image = (isset($_SERVER['HTTPS']) ? 'https:' : 'http:') . $image;
+        }
+
         // Remote file ?
         if (substr($image, 0, 4) == 'http') {
             // Set path for remote cache file
             $remoteCachePath = $image;
-            $remoteCachePath = ltrim($remoteCachePath, 'https://');
+            if (substr($remoteCachePath, 0, 8) == 'https://') {
+                $remoteCachePath = substr($remoteCachePath, 8);
+            }
+            if (substr($remoteCachePath, 0, 7) == 'http://') {
+                $remoteCachePath = substr($remoteCachePath, 7);
+            }
             $remoteCachePath = str_replace('~', '', $remoteCachePath);
             $remoteCachePath = preg_replace('#/{2,}#', '/', $remoteCachePath);
             if (mb_strpos($remoteCachePath, '?') !== false) {
