@@ -39,7 +39,7 @@ class GdLibrary implements EngineInterface
     {
         // Check prerequisite
         if (!function_exists('imagecreatetruecolor')) {
-            die('\Xicrow\PhpThumb\Engine\GdLibrary: Missing "imagecreatetruecolor" function');
+            trigger_error('\Xicrow\PhpThumb\Engine\GdLibrary: Missing "imagecreatetruecolor" function', E_USER_ERROR);
         }
     }
 
