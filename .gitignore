@@ -1,6 +1,7 @@
 .idea
-build
-code-coverage
+demo/webroot/cache_remote
+demo/webroot/images
+demo/webroot/thumbnails
 vendor
 composer.phar
 composer.lock
