@@ -247,6 +247,9 @@ class Thumb
         }
         $imageFileName = pathinfo($imagePath, PATHINFO_FILENAME);
         $imageFileExt  = pathinfo($imagePath, PATHINFO_EXTENSION);
+        if (!empty($options['webp'])) {
+            $imageFileExt = 'webp';
+        }
 
         // Set path to thumbnail file
         $thumbPath = rtrim($options['path_thumbs'], DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR;

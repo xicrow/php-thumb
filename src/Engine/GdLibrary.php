@@ -442,6 +442,10 @@ class GdLibrary implements EngineInterface
             mkdir($folderPath, 0755, true);
         }
 
+        if ($options['webp']) {
+            return imagewebp($this->resourceCurrent, $file, $options['quality']);
+        }
+
         // Save image data to file path
         if (strpos($this->mimeType, 'png') !== false) {
             return imagepng($this->resourceCurrent, $file, 9);

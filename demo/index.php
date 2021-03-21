@@ -42,6 +42,10 @@ Thumb::setOptions([
  */
 function getThumbUrl($image, $options = [])
 {
+    if (!array_key_exists('webp', $options) && !empty($_SERVER['HTTP_ACCEPT']) && strpos($_SERVER['HTTP_ACCEPT'], 'image/webp') !== false) {
+        $options['webp'] = true;
+    }
+
     // Resize in seperate process
     $thumbUrl = Helper::getThumbUrl($image, $options);
     if (substr($thumbUrl, 0, 4) != 'http') {
@@ -140,6 +144,81 @@ $optionsDefault = [
 
 	<body>
         <?php
+        $image   = 'images/1200x1200.jpg';
+        $options = array_replace_recursive($optionsDefault, [
+            'resize' => [
+                // Width of the thumbnail (empty value to auto calculate in relation to height)
+                'width'      => 800,
+                // Height of the thumbnail (empty value to auto calculate in relation to width)
+                'height'     => 800,
+                // Method to use when resizing
+                'method'     => 'crop',
+                // Stretch image if smaller than given dimensions
+                'stretch'    => true,
+                // Trim whitespace if fit method is used
+                'trim'       => false,
+                // Horizontal alignment of resized image within canvas (left, center, right)
+                'align_x'    => 'center',
+                // Vertical alignment of resized image within canvas (top, middle, bottom)
+                'align_y'    => 'middle',
+                // Color used for background when not trimming fitted thumbnails ('transparent' or hex color ie. #FFFFFF)
+                'background' => '#FFFFFF',
+                // Greyscale the thumbnail
+                'grayscale'  => false,
+            ],
+            'webp'   => false,
+        ]);
+
+        echo '<div style="margin: 5px; padding: 5px; background: #EEE; border: 1px solid #CCC; float: left;">';
+        $thumbUrl = getThumbUrl($image, $options);
+        echo '<table width="100%" border="0">';
+        echo '<tr><th width="50%">Setting</th><th>Value</th></tr>';
+        echo '<tr><td>Size</td><td>' . $options['resize']['width'] . 'x' . $options['resize']['height'] . '</td></tr>';
+        echo '<tr><td>Align</td><td>' . $options['resize']['align_x'] . ' ' . $options['resize']['align_y'] . '</td></tr>';
+        echo '<tr><td>Method</td><td>' . $options['resize']['method'] . '</td></tr>';
+        echo '<tr><td>Stretch</td><td>' . (int)$options['resize']['stretch'] . '</td></tr>';
+        echo '<tr><td>Trim</td><td>' . (int)$options['resize']['trim'] . '</td></tr>';
+        echo '<tr><td>Greyscale</td><td>' . (int)$options['resize']['grayscale'] . '</td></tr>';
+        echo '<tr><td>Background</td><td>' . $options['resize']['background'] . '</td></tr>';
+        echo '</table>';
+        echo '<div style="width: ' . $options['resize']['width'] . 'px; height: ' . $options['resize']['height'] . 'px;">';
+        echo '<img src="' . $thumbUrl . '" title="' . $thumbUrl . '" style="border: 1px solid #CCC;">';
+        echo '</div>';
+        if (file_exists($thumbUrl)) {
+            echo '<table width="100%" border="0">';
+            echo '<tr><th width="50%">Stat</th><th>Value</th></tr>';
+            echo '<tr><td>Size</td><td>' . filesize($thumbUrl) . ' bytes</td></tr>';
+            echo '</table>';
+        }
+        echo '</div>';
+
+        $options = array_replace_recursive($options, [
+            'webp' => true,
+        ]);
+
+        echo '<div style="margin: 5px; padding: 5px; background: #EEE; border: 1px solid #CCC; float: left;">';
+        $thumbUrl = getThumbUrl($image, $options);
+        echo '<table width="100%" border="0">';
+        echo '<tr><th width="50%">Setting</th><th>Value</th></tr>';
+        echo '<tr><td>Size</td><td>' . $options['resize']['width'] . 'x' . $options['resize']['height'] . '</td></tr>';
+        echo '<tr><td>Align</td><td>' . $options['resize']['align_x'] . ' ' . $options['resize']['align_y'] . '</td></tr>';
+        echo '<tr><td>Method</td><td>' . $options['resize']['method'] . '</td></tr>';
+        echo '<tr><td>Stretch</td><td>' . (int)$options['resize']['stretch'] . '</td></tr>';
+        echo '<tr><td>Trim</td><td>' . (int)$options['resize']['trim'] . '</td></tr>';
+        echo '<tr><td>Greyscale</td><td>' . (int)$options['resize']['grayscale'] . '</td></tr>';
+        echo '<tr><td>Background</td><td>' . $options['resize']['background'] . '</td></tr>';
+        echo '</table>';
+        echo '<div style="width: ' . $options['resize']['width'] . 'px; height: ' . $options['resize']['height'] . 'px;">';
+        echo '<img src="' . $thumbUrl . '" title="' . $thumbUrl . '" style="border: 1px solid #CCC;">';
+        echo '</div>';
+        if (file_exists($thumbUrl)) {
+            echo '<table width="100%" border="0">';
+            echo '<tr><th width="50%">Stat</th><th>Value</th></tr>';
+            echo '<tr><td>Size</td><td>' . filesize($thumbUrl) . ' bytes</td></tr>';
+            echo '</table>';
+        }
+        echo '</div>';
+
         $images = [
             // Square
             //			'images/1200x1200.jpg',
@@ -212,7 +291,6 @@ $optionsDefault = [
                 echo '</div>';
             }
         }
-
         if (false) {
             // Advanced test
             $option1List = [
