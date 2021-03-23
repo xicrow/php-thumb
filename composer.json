@@ -22,21 +22,15 @@
 	},
 	"require"     : {
 		"php"         : "^7.0",
+		"ext-curl"    : "*",
+		"ext-fileinfo": "*",
 		"ext-gd"      : "*",
 		"ext-json"    : "*",
 		"ext-mbstring": "*"
 	},
-	"require-dev" : {
-		"phpunit/phpunit": "^5.2"
-	},
 	"autoload"    : {
 		"psr-4": {
 			"Xicrow\\PhpThumb\\": "src"
-		}
-	},
-	"autoload-dev": {
-		"psr-4": {
-			"Xicrow\\PhpThumb\\Test\\": "tests"
 		}
 	}
 }
