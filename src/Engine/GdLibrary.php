@@ -1,6 +1,8 @@
 <?php
 namespace Xicrow\PhpThumb\Engine;
 
+use GdImage;
+use RuntimeException;
 use Xicrow\PhpThumb\EngineInterface;
 use Xicrow\PhpThumb\Utility;
 
@@ -12,16 +14,16 @@ use Xicrow\PhpThumb\Utility;
 class GdLibrary implements EngineInterface
 {
 	/**
-	 * Resource for original image
+	 * Image object for original image
 	 *
-	 * @var null|resource
+	 * @var null|false|GdImage
 	 */
 	private $resourceOriginal = null;
 
 	/**
-	 * Resource for current modified image
+	 * Image object for current modified image
 	 *
-	 * @var null|resource
+	 * @var null|false|GdImage
 	 */
 	private $resourceCurrent = null;
 
@@ -39,14 +41,14 @@ class GdLibrary implements EngineInterface
 	{
 		// Check prerequisite
 		if (!function_exists('imagecreatetruecolor')) {
-			trigger_error('\Xicrow\PhpThumb\Engine\GdLibrary: Missing "imagecreatetruecolor" function', E_USER_ERROR);
+			throw new RuntimeException('\Xicrow\PhpThumb\Engine\GdLibrary: Missing "imagecreatetruecolor" function');
 		}
 	}
 
 	/**
 	 * Get the current resource
 	 *
-	 * @return null|resource
+	 * @return null|false|GdImage
 	 */
 	public function getResourceCurrent()
 	{
@@ -70,7 +72,7 @@ class GdLibrary implements EngineInterface
 			$this->resourceOriginal = imagecreatefrompng($file);
 		}
 
-		return is_resource($this->resourceOriginal);
+		return ($this->resourceOriginal instanceof GdImage);
 	}
 
 	/**
@@ -145,47 +147,47 @@ class GdLibrary implements EngineInterface
 				// Calculate destination X and Y coordinates
 				switch ($options['align_x']) {
 					case 'left':
-					break;
+						break;
 					case 'center':
 						if (!$underSized) {
 							$srcX = (($originalWidth - $srcW) / 2);
 						} else {
 							$dstX = (($options['width'] - $srcW) / 2);
 						}
-					break;
+						break;
 					case 'right':
 						if (!$underSized) {
 							$srcX = ($originalWidth - $srcW);
 						} else {
 							$dstX = ($options['width'] - $srcW);
 						}
-					break;
+						break;
 					default:
 						die('\Xicrow\PhpThumb\Engine\GdLibrary: Unknown horizontal alignment: ' . $options['align_x']);
-					break;
+						break;
 				}
 				switch ($options['align_y']) {
 					case 'top':
-					break;
+						break;
 					case 'middle':
 						if (!$underSized) {
 							$srcY = (($originalHeight - $srcH) / 2);
 						} else {
 							$dstY = (($options['height'] - $srcH) / 2);
 						}
-					break;
+						break;
 					case 'bottom':
 						if (!$underSized) {
 							$srcY = ($originalHeight - $srcH);
 						} else {
 							$dstY = ($options['height'] - $srcH);
 						}
-					break;
+						break;
 					default:
 						die('\Xicrow\PhpThumb\Engine\GdLibrary: Unknown vertical alignment: ' . $options['align_y']);
-					break;
+						break;
 				}
-			break;
+				break;
 			case 'fit':
 				// Calculate multiplier for original size if stretching is allowed, and image is smaller than requested
 				$originalMultiplier = 1;
@@ -200,7 +202,7 @@ class GdLibrary implements EngineInterface
 				}
 
 				// Get constrained image dimensions
-				list($fitWidth, $fitHeight) = Utility::constrainDimensions(($originalWidth * $originalMultiplier), ($originalHeight * $originalMultiplier), $options['width'],
+				[$fitWidth, $fitHeight] = Utility::constrainDimensions(($originalWidth * $originalMultiplier), ($originalHeight * $originalMultiplier), $options['width'],
 					$options['height']);
 
 				// If fit method is used and trim is enabled, adjust width and height to image dimensions
@@ -222,31 +224,31 @@ class GdLibrary implements EngineInterface
 				// Calculate destination X and Y coordinates
 				switch ($options['align_x']) {
 					case 'left':
-					break;
+						break;
 					case 'center':
 						$dstX = (($options['width'] - $dstW) / 2);
-					break;
+						break;
 					case 'right':
 						$dstX = ($options['width'] - $dstW);
-					break;
+						break;
 					default:
 						die('\Xicrow\PhpThumb\Engine\GdLibrary: Unknown horizontal alignment: ' . $options['align_x']);
-					break;
+						break;
 				}
 				switch ($options['align_y']) {
 					case 'top':
-					break;
+						break;
 					case 'middle':
 						$dstY = (($options['height'] - $dstH) / 2);
-					break;
+						break;
 					case 'bottom':
 						$dstY = ($options['height'] - $dstH);
-					break;
+						break;
 					default:
 						die('\Xicrow\PhpThumb\Engine\GdLibrary: Unknown vertical alignment: ' . $options['align_y']);
-					break;
+						break;
 				}
-			break;
+				break;
 		}
 
 		// Get image background color setting
@@ -259,7 +261,7 @@ class GdLibrary implements EngineInterface
 		}
 
 		// Create canvas
-		$this->resourceCurrent = imagecreatetruecolor($canvasWidth, $canvasHeight);
+		$this->resourceCurrent = imagecreatetruecolor((int)$canvasWidth, (int)$canvasHeight);
 
 		// Transparent or solid background color
 		if ($background == 'transparent') {
@@ -292,14 +294,14 @@ class GdLibrary implements EngineInterface
 		}
 
 		// Copy and resize part of the image with resampling
-		imagecopyresampled($this->resourceCurrent, $this->resourceOriginal, $dstX, $dstY, $srcX, $srcY, $dstW, $dstH, $srcW, $srcH);
+		imagecopyresampled($this->resourceCurrent, $this->resourceOriginal, (int)$dstX, (int)$dstY, (int)$srcX, (int)$srcY, (int)$dstW, (int)$dstH, (int)$srcW, (int)$srcH);
 
 		// Convert image to grayscale
 		if (!empty($options['grayscale'])) {
 			imagefilter($this->resourceCurrent, IMG_FILTER_GRAYSCALE);
 		}
 
-		return is_resource($this->resourceCurrent);
+		return ($this->resourceCurrent instanceof GdImage);
 	}
 
 	/**
@@ -342,33 +344,33 @@ class GdLibrary implements EngineInterface
 			// Calculate destination X and Y coordinates
 			switch ($options['align_x']) {
 				case 'left':
-				break;
+					break;
 				case 'center':
 					$dstX = (($originalWidth - $dstW) / 2);
-				break;
+					break;
 				case 'right':
 					$dstX = ($originalWidth - $dstW);
-				break;
+					break;
 				default:
 					die('\Xicrow\PhpThumb\Engine\GdLibrary: Unknown horizontal alignment: ' . $options['align_x']);
-				break;
+					break;
 			}
 			switch ($options['align_y']) {
 				case 'top':
-				break;
+					break;
 				case 'middle':
 					$dstY = (($originalHeight - $dstH) / 2);
-				break;
+					break;
 				case 'bottom':
 					$dstY = ($originalHeight - $dstH);
-				break;
+					break;
 				default:
 					die('\Xicrow\PhpThumb\Engine\GdLibrary: Unknown vertical alignment: ' . $options['align_y']);
-				break;
+					break;
 			}
 
 			// Copy and resize part of the image with resampling
-			imagecopyresampled($this->resourceCurrent, $watermarkResource, $dstX, $dstY, $srcX, $srcY, $dstW, $dstH, $srcW, $srcH);
+			imagecopyresampled($this->resourceCurrent, $watermarkResource, (int)$dstX, (int)$dstY, (int)$srcX, (int)$srcY, (int)$dstW, (int)$dstH, (int)$srcW, (int)$srcH);
 		}
 
 		// If text is given
@@ -392,29 +394,29 @@ class GdLibrary implements EngineInterface
 			$y = 0;
 			switch ($options['align_x']) {
 				case 'left':
-				break;
+					break;
 				case 'center':
 					$x = (($originalWidth - $textWidth) / 2);
-				break;
+					break;
 				case 'right':
 					$x = ($originalWidth - $textWidth);
-				break;
+					break;
 				default:
 					die('\Xicrow\PhpThumb\Engine\GdLibrary: Unknown horizontal alignment: ' . $options['align_x']);
-				break;
+					break;
 			}
 			switch ($options['align_y']) {
 				case 'top':
-				break;
+					break;
 				case 'middle':
 					$y = (($originalHeight - $textHeight) / 2);
-				break;
+					break;
 				case 'bottom':
 					$y = ($originalHeight - $textHeight);
-				break;
+					break;
 				default:
 					die('\Xicrow\PhpThumb\Engine\GdLibrary: Unknown vertical alignment: ' . $options['align_y']);
-				break;
+					break;
 			}
 
 			// Add font size to Y coordinate
@@ -425,10 +427,10 @@ class GdLibrary implements EngineInterface
 			$color    = imagecolorallocate($this->resourceCurrent, $colorRgb[0], $colorRgb[1], $colorRgb[2]);
 
 			// Write text to image
-			imagettftext($this->resourceCurrent, $options['font_size'], $angle, $x, $y, $color, $options['font'], $options['text']);
+			imagettftext($this->resourceCurrent, $options['font_size'], $angle, (int)$x, (int)$y, $color, $options['font'], $options['text']);
 		}
 
-		return is_resource($this->resourceCurrent);
+		return ($this->resourceCurrent instanceof GdImage);
 	}
 
 	/**
@@ -442,7 +444,7 @@ class GdLibrary implements EngineInterface
 			mkdir($folderPath, 0755, true);
 		}
 
-		if ($options['webp']) {
+		if (!empty($options['webp'])) {
 			return imagewebp($this->resourceCurrent, $file, $options['quality']);
 		}
 

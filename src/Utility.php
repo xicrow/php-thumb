@@ -81,9 +81,9 @@ class Utility
 		if (!self::isValidMimeType($mimeType)) {
 			if (function_exists('finfo_open')) {
 				$finfo = @finfo_open(FILEINFO_MIME);
-				if ($finfo != '') {
+				if ($finfo !== false) {
 					$mimeType = finfo_file($finfo, $filePath);
-					finfo_close($finfo);
+					unset($finfo);
 				}
 			}
 		}
@@ -102,7 +102,7 @@ class Utility
 			$mimeType = 'image/png';
 			// file details
 			$fileDetails = pathinfo($filePath);
-			$ext         = strtolower($fileDetails["extension"]);
+			$ext         = strtolower($fileDetails["extension"] ?? '');
 			// mime types
 			$types = [
 				'jpg'  => 'image/jpeg',
@@ -111,7 +111,7 @@ class Utility
 				'gif'  => 'image/gif',
 			];
 
-			if (strlen($ext) && strlen($types[$ext])) {
+			if (strlen($ext) && isset($types[$ext])) {
 				$mimeType = $types[$ext];
 			}
 		}
@@ -345,8 +345,8 @@ class Utility
 			break;
 		}
 
-		// Close cURL handle
-		curl_close($curl);
+		// Free cURL handle (curl_close() is a no-op as of PHP 8.0 and deprecated as of PHP 8.5)
+		unset($curl);
 
 		// Return the return value
 		return $returnValue;

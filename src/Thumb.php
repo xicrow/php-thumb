@@ -292,8 +292,11 @@ class Thumb
 				 */
 				$engine = new self::$engine();
 
-				// Load image
-				$engine->load($imagePath, $options);
+				// Load image, and skip if it could not be loaded (ie. unsupported image type)
+				if (!$engine->load($imagePath, $options)) {
+					// Return path to thumbnail
+					return $thumbPath;
+				}
 				if ($options['resize'] && (!empty($options['resize']['width']) || !empty($options['resize']['height']))) {
 					// Resize
 					$engine->resize($options['resize']);
