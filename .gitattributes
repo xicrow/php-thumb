@@ -1,2 +1,8 @@
 * text eol=lf
 *.php diff=php
+*.ttf binary
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.webp binary
